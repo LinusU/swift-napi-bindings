@@ -6,8 +6,10 @@ let package = Package(
     name: "NAPI",
     products: [
         .library(name: "NAPI", type: .static, targets: ["NAPI"]),
+        .library(name: "NAPIC", type: .static, targets: ["NAPIC"]),
     ],
     targets: [
-        .target(name: "NAPI", path: ".", publicHeadersPath: "include"),
+        .target(name: "NAPI", dependencies: ["NAPIC"]),
+        .target(name: "NAPIC", publicHeadersPath: "include"),
     ]
 )
