@@ -16,22 +16,6 @@ extension Optional: ValueConvertible where Wrapped: ValueConvertible {
     }
 }
 
-extension Swift.Error /* : ValueConvertible */ {
-    public init(_ env: napi_env, from: napi_value) throws {
-        fatalError("Not implemented")
-    }
-
-    public func napiValue(_ env: napi_env) throws -> napi_value {
-        let message = try self.localizedDescription.napiValue(env)
-
-        var result: napi_value!
-        let status = napi_create_error(env, nil, message, &result)
-        guard status == napi_ok else { throw NAPI.Error(status) }
-
-        return result
-    }
-}
-
 extension Dictionary: ValueConvertible where Key == String, Value: ValueConvertible {
     public init(_ env: napi_env, from: napi_value) throws {
         fatalError("Not implemented")

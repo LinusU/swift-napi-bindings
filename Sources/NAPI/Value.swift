@@ -1,6 +1,25 @@
 import NAPIC
 import Foundation
 
+fileprivate func throwError(_ env: napi_env, _ error: Swift.Error) throws {
+    if let error = error as? ValueConvertible {
+        let status = napi_throw(env, try error.napiValue(env))
+        guard status == napi_ok else { throw NAPI.Error(status) }
+    } else {
+        let status = napi_throw_error(env, nil, error.localizedDescription)
+        guard status == napi_ok else { throw NAPI.Error(status) }
+    }
+}
+
+fileprivate func exceptionIsPending(_ env: napi_env) throws -> Bool {
+    var result: Bool = false
+
+    let status = napi_is_exception_pending(env, &result)
+    guard status == napi_ok else { throw NAPI.Error(status) }
+
+    return result
+}
+
 public typealias Callback = (napi_env, [napi_value], napi_value) throws -> ValueConvertible?
 
 class CallbackData {
@@ -28,18 +47,9 @@ func swiftNAPICallback(_ env: napi_env!, _ cbinfo: napi_callback_info!) -> napi_
 
     do {
         return try data.callback(env, argv as! Array<napi_value>, this!)?.napiValue(env)
-    } catch is NAPI.Error {
-        return nil
     } catch {
-        do {
-            let status = napi_throw(env, try error.napiValue(env))
-            guard status == napi_ok else { throw NAPI.Error(status) }
-            return nil
-        } catch is NAPI.Error {
-            return nil
-        } catch {
-            fatalError("Failed to convert Swift Error into JS Error")
-        }
+        if try! exceptionIsPending(env) == false { try! throwError(env, error) }
+        return nil
     }
 }
 
