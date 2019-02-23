@@ -126,3 +126,19 @@ extension Value: Decodable {
         }
     }
 }
+
+extension Value: CustomStringConvertible {
+    public var description: String {
+        switch self {
+            case .class(_): return "[Function: ...]"
+            case .function(_): return "[Function: ...]"
+            case .object(let object): return "{ \(object.map({ "\($0): \($1)" }).joined(separator: ", "))) }"
+            case .array(let array): return "[ \(array.map({ String(describing: $0) }).joined(separator: ", ")) ]"
+            case .string(let string): return string
+            case .number(let number): return String(describing: number)
+            case .boolean(let boolean): return boolean ? "true" : "false"
+            case .null: return "null"
+            case .undefined: return "undefined"
+        }
+    }
+}
