@@ -1,9 +1,17 @@
 import NAPIC
 import Foundation
 
+public protocol ErrorConvertible: Swift.Error {
+    var message: String { get }
+    var code: String? { get }
+}
+
 fileprivate func throwError(_ env: napi_env, _ error: Swift.Error) throws {
     if let error = error as? ValueConvertible {
         let status = napi_throw(env, try error.napiValue(env))
+        guard status == napi_ok else { throw NAPI.Error(status) }
+    } else if let error = error as? ErrorConvertible {
+        let status = napi_throw_error(env, error.code, error.message)
         guard status == napi_ok else { throw NAPI.Error(status) }
     } else {
         let status = napi_throw_error(env, nil, error.localizedDescription)
