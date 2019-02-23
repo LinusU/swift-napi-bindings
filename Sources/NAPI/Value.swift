@@ -61,20 +61,6 @@ func swiftNAPICallback(_ env: napi_env!, _ cbinfo: napi_callback_info!) -> napi_
     }
 }
 
-fileprivate func getUndefined(_ env: napi_env) throws -> napi_value {
-    var result: napi_value?
-    let status = napi_get_undefined(env, &result)
-    guard status == napi_ok else { throw NAPI.Error(status) }
-    return result!
-}
-
-fileprivate func getNull(_ env: napi_env) throws -> napi_value {
-    var result: napi_value?
-    let status = napi_get_null(env, &result)
-    guard status == napi_ok else { throw NAPI.Error(status) }
-    return result!
-}
-
 public enum Value: ValueConvertible {
     case `class`(Class)
     case function(Function)
@@ -99,8 +85,8 @@ public enum Value: ValueConvertible {
             case .string(let string): return try string.napiValue(env)
             case .number(let number): return try number.napiValue(env)
             case .boolean(let boolean): return try boolean.napiValue(env)
-            case .null: return try getNull(env)
-            case .undefined: return try getUndefined(env)
+            case .null: return try Null.default.napiValue(env)
+            case .undefined: return try Undefined.default.napiValue(env)
         }
     }
 }
