@@ -7,7 +7,10 @@ public protocol ErrorConvertible: Swift.Error {
 }
 
 fileprivate func throwError(_ env: napi_env, _ error: Swift.Error) throws {
-    if let error = error as? ValueConvertible {
+    if let error = error as? NAPI.Error {
+        let status = error.napi_throw(env)
+        guard status == napi_ok else { throw NAPI.Error(status) }
+    } else if let error = error as? ValueConvertible {
         let status = napi_throw(env, try error.napiValue(env))
         guard status == napi_ok else { throw NAPI.Error(status) }
     } else if let error = error as? ErrorConvertible {
@@ -55,6 +58,8 @@ func swiftNAPICallback(_ env: napi_env!, _ cbinfo: napi_callback_info!) -> napi_
 
     do {
         return try data.callback(env, argv as! Array<napi_value>, this!)?.napiValue(env)
+    } catch NAPI.Error.pendingException {
+        return nil
     } catch {
         if try! exceptionIsPending(env) == false { try! throwError(env, error) }
         return nil

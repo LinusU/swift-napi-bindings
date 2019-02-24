@@ -4,7 +4,19 @@ public struct Undefined: ValueConvertible {
     public static let `default` = Undefined()
 
     private init() {}
-    public init(_ env: napi_env, from: napi_value) throws {}
+
+    public init(_ env: napi_env, from: napi_value) throws {
+        let undefined = try Undefined.default.napiValue(env)
+
+        var result = false
+        let status = napi_strict_equals(env, undefined, from, &result)
+        guard status == napi_ok else { throw NAPI.Error(status) }
+
+        guard result == true else {
+            napi_throw_type_error(env, nil, "Expected undefined")
+            throw NAPI.Error.pendingException
+        }
+    }
 
     public func napiValue(_ env: napi_env) throws -> napi_value {
         var result: napi_value?
