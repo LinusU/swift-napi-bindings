@@ -8,6 +8,16 @@ public protocol ValueConvertible {
 
 extension Optional: ValueConvertible where Wrapped: ValueConvertible {
     public init(_ env: napi_env, from: napi_value) throws {
+        if try strictlyEquals(env, lhs: from, rhs: Null.default) {
+            self = .none
+            return
+        }
+
+        if try strictlyEquals(env, lhs: from, rhs: Undefined.default) {
+            self = .none
+            return
+        }
+
         self = .some(try Wrapped.init(env, from: from))
     }
 
