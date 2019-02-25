@@ -45,29 +45,29 @@ extension Function {
     /* (...) -> Void */
 
     public convenience init(named name: String, _ callback: @escaping () throws -> Void) {
-        self.init(named: name, { (_, _, _) in try callback(); return Value.undefined })
+        self.init(named: name, { (_, _) in try callback(); return Value.undefined })
     }
 
     public convenience init<A: ValueConvertible>(named name: String, _ callback: @escaping (A) throws -> Void) {
-        self.init(named: name, { (env, argv, _) in try callback(A(env, from: argv[0])); return Value.undefined })
+        self.init(named: name, { (env, args) in try callback(A(env, from: args.0)); return Value.undefined })
     }
 
     public convenience init<A: ValueConvertible, B: ValueConvertible>(named name: String, _ callback: @escaping (A, B) throws -> Void) {
-        self.init(named: name, { (env, argv, _) in try callback(A(env, from: argv[0]), B(env, from: argv[1])); return Value.undefined })
+        self.init(named: name, { (env, args) in try callback(A(env, from: args.0), B(env, from: args.1)); return Value.undefined })
     }
 
     /* (env, ...) -> Void */
 
     public convenience init(named name: String, _ callback: @escaping (napi_env) throws -> Void) {
-        self.init(named: name, { (env, _, _) in try callback(env); return Value.undefined })
+        self.init(named: name, { (env, _) in try callback(env); return Value.undefined })
     }
 
     public convenience init<A: ValueConvertible>(named name: String, _ callback: @escaping (napi_env, A) throws -> Void) {
-        self.init(named: name, { (env, argv, _) in try callback(env, A(env, from: argv[0])); return Value.undefined })
+        self.init(named: name, { (env, args) in try callback(env, A(env, from: args.0)); return Value.undefined })
     }
 
     public convenience init<A: ValueConvertible, B: ValueConvertible>(named name: String, _ callback: @escaping (napi_env, A, B) throws -> Void) {
-        self.init(named: name, { (env, argv, _) in try callback(env, A(env, from: argv[0]), B(env, from: argv[1])); return Value.undefined })
+        self.init(named: name, { (env, args) in try callback(env, A(env, from: args.0), B(env, from: args.1)); return Value.undefined })
     }
 }
 

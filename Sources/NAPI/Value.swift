@@ -31,7 +31,7 @@ fileprivate func exceptionIsPending(_ env: napi_env) throws -> Bool {
     return result
 }
 
-public typealias Callback = (napi_env, [napi_value], napi_value) throws -> ValueConvertible?
+public typealias Callback = (napi_env, Arguments) throws -> ValueConvertible?
 
 class CallbackData {
     let callback: Callback
@@ -43,21 +43,14 @@ class CallbackData {
 
 @_cdecl("swift_napi_callback")
 func swiftNAPICallback(_ env: napi_env!, _ cbinfo: napi_callback_info!) -> napi_value? {
-    var this: napi_value?
-    var argc: Int = 10
-
-    let argvPointer = UnsafeMutableBufferPointer<napi_value?>.allocate(capacity: 10)
+    var args = NullableArguments(nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, 10, nil)
     let dataPointer = UnsafeMutablePointer<UnsafeMutableRawPointer?>.allocate(capacity: 1)
 
-    napi_get_cb_info(env, cbinfo, &argc, argvPointer.baseAddress, &this, dataPointer)
-
-    var argv = Array<napi_value?>(argvPointer)
-    argv.removeLast(10 - argc)
-
+    napi_get_cb_info(env, cbinfo, &args.length, &args.0, &args.this, dataPointer)
     let data = Unmanaged<CallbackData>.fromOpaque(dataPointer.pointee!).takeUnretainedValue()
 
     do {
-        return try data.callback(env, argv as! Array<napi_value>, this!)?.napiValue(env)
+        return try data.callback(env, args as! Arguments)?.napiValue(env)
     } catch NAPI.Error.pendingException {
         return nil
     } catch {

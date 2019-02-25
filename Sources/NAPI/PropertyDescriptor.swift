@@ -32,66 +32,66 @@ public struct PropertyDescriptor {
     }
 
     public static func `class`<This: AnyObject>(_ name: String, _ constructor: @escaping () throws -> This, _ properties: [PropertyDescriptor], attributes: napi_property_attributes = napi_default) -> PropertyDescriptor {
-        return .init(.value(name, Class(named: name, { (env, argv, this) in let native = try constructor(); try Wrap<This>.wrap(env, jsObject: this, nativeObject: native); return nil }, properties), attributes))
+        return .init(.value(name, Class(named: name, { (env, args) in let native = try constructor(); try Wrap<This>.wrap(env, jsObject: args.this, nativeObject: native); return nil }, properties), attributes))
     }
 
     public static func `class`<This: AnyObject>(_ name: String, _ constructor: @escaping (napi_env) throws -> This, _ properties: [PropertyDescriptor], attributes: napi_property_attributes = napi_default) -> PropertyDescriptor {
-        return .init(.value(name, Class(named: name, { (env, argv, this) in let native = try constructor(env); try Wrap<This>.wrap(env, jsObject: this, nativeObject: native); return nil }, properties), attributes))
+        return .init(.value(name, Class(named: name, { (env, args) in let native = try constructor(env); try Wrap<This>.wrap(env, jsObject: args.this, nativeObject: native); return nil }, properties), attributes))
     }
 
     /* (...) -> Void */
 
     public static func function(_ name: String, _ callback: @escaping () throws -> Void, attributes: napi_property_attributes = napi_default) -> PropertyDescriptor {
-        return .init(.method(name, { (_, _, _) in try callback(); return Value.undefined }, attributes))
+        return .init(.method(name, { (_, _) in try callback(); return Value.undefined }, attributes))
     }
 
     public static func function<A: ValueConvertible>(_ name: String, _ callback: @escaping (A) throws -> Void, attributes: napi_property_attributes = napi_default) -> PropertyDescriptor {
-        return .init(.method(name, { (env, argv, _) in try callback(A(env, from: argv[0])); return Value.undefined }, attributes))
+        return .init(.method(name, { (env, args) in try callback(A(env, from: args.0)); return Value.undefined }, attributes))
     }
 
     public static func function<A: ValueConvertible, B: ValueConvertible>(_ name: String, _ callback: @escaping (A, B) throws -> Void, attributes: napi_property_attributes = napi_default) -> PropertyDescriptor {
-        return .init(.method(name, { (env, argv, _) in try callback(A(env, from: argv[0]), B(env, from: argv[1])); return Value.undefined }, attributes))
+        return .init(.method(name, { (env, args) in try callback(A(env, from: args.0), B(env, from: args.1)); return Value.undefined }, attributes))
     }
 
     /* (...) -> ValueConvertible */
 
     public static func function(_ name: String, _ callback: @escaping () throws -> ValueConvertible, attributes: napi_property_attributes = napi_default) -> PropertyDescriptor {
-        return .init(.method(name, { (_, _, _) in return try callback() }, attributes))
+        return .init(.method(name, { (_, _) in return try callback() }, attributes))
     }
 
     public static func function<A: ValueConvertible>(_ name: String, _ callback: @escaping (A) throws -> ValueConvertible, attributes: napi_property_attributes = napi_default) -> PropertyDescriptor {
-        return .init(.method(name, { (env, argv, _) in return try callback(A(env, from: argv[0])) }, attributes))
+        return .init(.method(name, { (env, args) in return try callback(A(env, from: args.0)) }, attributes))
     }
 
     public static func function<A: ValueConvertible, B: ValueConvertible>(_ name: String, _ callback: @escaping (A, B) throws -> ValueConvertible, attributes: napi_property_attributes = napi_default) -> PropertyDescriptor {
-        return .init(.method(name, { (env, argv, _) in return try callback(A(env, from: argv[0]), B(env, from: argv[1])) }, attributes))
+        return .init(.method(name, { (env, args) in return try callback(A(env, from: args.0), B(env, from: args.1)) }, attributes))
     }
 
     /* (this, ...) -> Void */
 
     public static func method<This: AnyObject>(_ name: String, _ callback: @escaping (This) throws -> Void, attributes: napi_property_attributes = napi_default) -> PropertyDescriptor {
-        return .init(.method(name, { (env, _, this) in try callback(Wrap<This>.unwrap(env, jsObject: this)); return Value.undefined }, attributes))
+        return .init(.method(name, { (env, args) in try callback(Wrap<This>.unwrap(env, jsObject: args.this)); return Value.undefined }, attributes))
     }
 
     public static func method<This: AnyObject, A: ValueConvertible>(_ name: String, _ callback: @escaping (This, A) throws -> Void, attributes: napi_property_attributes = napi_default) -> PropertyDescriptor {
-        return .init(.method(name, { (env, argv, this) in try callback(Wrap<This>.unwrap(env, jsObject: this), A(env, from: argv[0])); return Value.undefined }, attributes))
+        return .init(.method(name, { (env, args) in try callback(Wrap<This>.unwrap(env, jsObject: args.this), A(env, from: args.0)); return Value.undefined }, attributes))
     }
 
     public static func method<This: AnyObject, A: ValueConvertible, B: ValueConvertible>(_ name: String, _ callback: @escaping (This, A, B) throws -> Void, attributes: napi_property_attributes = napi_default) -> PropertyDescriptor {
-        return .init(.method(name, { (env, argv, this) in try callback(Wrap<This>.unwrap(env, jsObject: this), A(env, from: argv[0]), B(env, from: argv[1])); return Value.undefined }, attributes))
+        return .init(.method(name, { (env, args) in try callback(Wrap<This>.unwrap(env, jsObject: args.this), A(env, from: args.0), B(env, from: args.1)); return Value.undefined }, attributes))
     }
 
     /* (this, ...) -> ValueConvertible */
 
     public static func method<This: AnyObject>(_ name: String, _ callback: @escaping (This) throws -> ValueConvertible, attributes: napi_property_attributes = napi_default) -> PropertyDescriptor {
-        return .init(.method(name, { (env, _, this) in return try callback(Wrap<This>.unwrap(env, jsObject: this)) }, attributes))
+        return .init(.method(name, { (env, args) in return try callback(Wrap<This>.unwrap(env, jsObject: args.this)) }, attributes))
     }
 
     public static func method<This: AnyObject, A: ValueConvertible>(_ name: String, _ callback: @escaping (This, A) throws -> ValueConvertible, attributes: napi_property_attributes = napi_default) -> PropertyDescriptor {
-        return .init(.method(name, { (env, argv, this) in return try callback(Wrap<This>.unwrap(env, jsObject: this), A(env, from: argv[0])) }, attributes))
+        return .init(.method(name, { (env, args) in return try callback(Wrap<This>.unwrap(env, jsObject: args.this), A(env, from: args.0)) }, attributes))
     }
 
     public static func method<This: AnyObject, A: ValueConvertible, B: ValueConvertible>(_ name: String, _ callback: @escaping (This, A, B) throws -> ValueConvertible, attributes: napi_property_attributes = napi_default) -> PropertyDescriptor {
-        return .init(.method(name, { (env, argv, this) in return try callback(Wrap<This>.unwrap(env, jsObject: this), A(env, from: argv[0]), B(env, from: argv[1])) }, attributes))
+        return .init(.method(name, { (env, args) in return try callback(Wrap<This>.unwrap(env, jsObject: args.this), A(env, from: args.0), B(env, from: args.1)) }, attributes))
     }
 }
